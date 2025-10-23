@@ -1,0 +1,43 @@
+{
+  "name": "rhymebook",
+  "version": "2.0.0",
+  "description": "AI-Powered Rhymebook with Advanced Phonetic Analysis Engine",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "eject": "expo eject",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "expo": "~49.0.0",
+    "expo-haptics": "~12.6.0",
+    "expo-status-bar": "~1.6.0",
+    "react": "18.2.0",
+    "react-native": "0.72.6",
+    "@react-native-async-storage/async-storage": "1.18.2",
+    "react-native-gesture-handler": "~2.12.0",
+    "react-native-reanimated": "~3.3.0",
+    "react-native-safe-area-context": "4.6.3",
+    "react-native-screens": "~3.22.0",
+    "react-native-svg": "13.9.0",
+    "@react-navigation/native": "^6.1.7",
+    "@react-navigation/bottom-tabs": "^6.5.8",
+    "@react-navigation/stack": "^6.3.17"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.14",
+    "@types/react-native": "^0.72.2",
+    "eslint": "^8.48.0",
+    "eslint-config-expo": "^7.0.0",
+    "jest": "^29.6.4",
+    "typescript": "^5.1.3"
+  },
+  "private": true,
+  "author": "Rhymebook Team",
+  "license": "MIT"
+}
