@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useDocumentStore } from '../stores/documentStore';
 import type { Document, Mode } from '../types';
+import { forceEinkRefresh, isPenInput } from '../lib/eink-utils';
 
 const STAGE_ORDER: Mode[] = ['draft', 'research', 'synthesis', 'writing'];
 const STAGE_LABELS: Record<Mode, string> = {
@@ -21,6 +22,43 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClos
   const [editedContent, setEditedContent] = useState(document.content);
   const [editedTitle, setEditedTitle] = useState(document.title);
   const [showLineage, setShowLineage] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // E-ink refresh on modal open
+  useEffect(() => {
+    forceEinkRefresh(modalRef.current);
+  }, []);
+
+  // Handle scroll end for e-ink
+  const handleScrollEnd = useCallback(() => {
+    forceEinkRefresh(contentRef.current);
+  }, []);
+
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+
+    let scrollTimeout: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScrollEnd, 150);
+    };
+
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      container.removeEventListener('scroll', onScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [handleScrollEnd]);
+
+  // Stylus support for editing
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (isPenInput(e.nativeEvent)) {
+      forceEinkRefresh(textareaRef.current);
+    }
+  }, []);
 
   const nextStage = (() => {
     const currentIndex = STAGE_ORDER.indexOf(document.currentStage);
@@ -63,10 +101,14 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClos
       <div
         className="fixed inset-0 bg-black bg-opacity-20 z-50"
         onClick={onClose}
+        style={{ touchAction: 'manipulation' }}
       />
 
       {/* Modal */}
-      <div className="fixed inset-2 md:inset-8 bg-white border-2 border-black z-50 flex flex-col">
+      <div
+        ref={modalRef}
+        className="fixed inset-2 md:inset-8 bg-white border-2 border-black z-50 flex flex-col"
+      >
         {/* Header */}
         <div className="p-4 border-b-2 border-black">
           <div className="flex justify-between items-start mb-2">
@@ -75,14 +117,17 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClos
                 type="text"
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
-                className="flex-1 border-2 border-black p-2 font-serif font-semibold text-lg mr-4"
+                className="flex-1 border-2 border-black p-2 font-serif font-semibold text-lg mr-4 min-h-[48px]"
+                style={{ touchAction: 'manipulation' }}
               />
             ) : (
               <h2 className="font-serif font-semibold text-lg flex-1">{document.title}</h2>
             )}
             <button
               onClick={onClose}
-              className="w-10 h-10 flex items-center justify-center text-xl"
+              className="w-12 h-12 flex items-center justify-center text-xl touch-target"
+              style={{ touchAction: 'manipulation' }}
+              aria-label="Close document"
             >
               ×
             </button>
@@ -135,15 +180,36 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClos
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div
+          ref={contentRef}
+          className="flex-1 overflow-y-auto p-4 scrollable"
+          style={{
+            touchAction: 'pan-y',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+          }}
+        >
           {isEditing ? (
             <textarea
+              ref={textareaRef}
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
-              className="w-full h-full min-h-[300px] border-2 border-black p-4 font-serif resize-none"
+              onPointerUp={handlePointerUp}
+              className="w-full h-full min-h-[300px] border-2 border-black p-4 font-serif resize-none stylus-input"
+              style={{
+                touchAction: 'pan-y pinch-zoom',
+                WebkitUserSelect: 'text',
+                userSelect: 'text',
+              }}
             />
           ) : (
-            <div className="font-serif whitespace-pre-wrap leading-relaxed">
+            <div
+              className="font-serif whitespace-pre-wrap leading-relaxed selectable-text"
+              style={{
+                WebkitUserSelect: 'text',
+                userSelect: 'text',
+              }}
+            >
               {document.content}
             </div>
           )}
@@ -159,13 +225,15 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClos
                   setEditedContent(document.content);
                   setEditedTitle(document.title);
                 }}
-                className="py-2 px-4 border-2 border-black min-h-[48px]"
+                className="py-2 px-4 border-2 border-black min-h-[48px] touch-target"
+                style={{ touchAction: 'manipulation' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
-                className="py-2 px-4 border-2 border-black bg-black text-white font-semibold min-h-[48px]"
+                className="py-2 px-4 border-2 border-black bg-black text-white font-semibold min-h-[48px] touch-target"
+                style={{ touchAction: 'manipulation' }}
               >
                 Save Changes
               </button>
@@ -174,21 +242,24 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClos
             <>
               <button
                 onClick={() => setIsEditing(true)}
-                className="py-2 px-4 border-2 border-black min-h-[48px]"
+                className="py-2 px-4 border-2 border-black min-h-[48px] touch-target"
+                style={{ touchAction: 'manipulation' }}
               >
                 Edit
               </button>
               {nextStage && (
                 <button
                   onClick={handlePromote}
-                  className="py-2 px-4 border-2 border-black bg-black text-white font-semibold min-h-[48px]"
+                  className="py-2 px-4 border-2 border-black bg-black text-white font-semibold min-h-[48px] touch-target"
+                  style={{ touchAction: 'manipulation' }}
                 >
                   Promote to {STAGE_LABELS[nextStage]} →
                 </button>
               )}
               <button
                 onClick={handleDelete}
-                className="py-2 px-4 border-2 border-black text-gray-600 min-h-[48px] ml-auto"
+                className="py-2 px-4 border-2 border-black text-gray-600 min-h-[48px] ml-auto touch-target"
+                style={{ touchAction: 'manipulation' }}
               >
                 Delete
               </button>

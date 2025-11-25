@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSettingsStore } from '../stores/settingsStore';
+import { forceEinkRefresh } from '../lib/eink-utils';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -12,6 +13,14 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [localModel, setLocalModel] = useState(model);
   const [localMaxTokens, setLocalMaxTokens] = useState(maxTokens.toString());
   const [showApiKey, setShowApiKey] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // E-ink refresh on modal open
+  useEffect(() => {
+    if (isOpen) {
+      forceEinkRefresh(modalRef.current);
+    }
+  }, [isOpen]);
 
   const handleSave = () => {
     setApiKey(localApiKey);
@@ -28,23 +37,35 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       <div
         className="fixed inset-0 bg-black bg-opacity-20 z-50"
         onClick={onClose}
+        style={{ touchAction: 'manipulation' }}
       />
 
       {/* Modal */}
-      <div className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[500px] md:max-h-[80vh] bg-white border-2 border-black z-50 flex flex-col">
+      <div
+        ref={modalRef}
+        className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[500px] md:max-h-[80vh] bg-white border-2 border-black z-50 flex flex-col"
+      >
         {/* Header */}
         <div className="p-4 border-b-2 border-black flex justify-between items-center">
           <h2 className="font-serif font-semibold text-lg">Settings</h2>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center text-xl"
+            className="w-12 h-12 flex items-center justify-center text-xl touch-target"
+            style={{ touchAction: 'manipulation' }}
+            aria-label="Close settings"
           >
             ×
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div
+          className="flex-1 overflow-y-auto p-4 scrollable"
+          style={{
+            touchAction: 'pan-y',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
           {/* API Key */}
           <div className="mb-6">
             <label className="block text-sm font-semibold mb-2 uppercase tracking-wide">
@@ -110,13 +131,15 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
         <div className="p-4 border-t-2 border-black flex gap-2">
           <button
             onClick={onClose}
-            className="flex-1 py-3 border-2 border-black min-h-[48px]"
+            className="flex-1 py-3 border-2 border-black min-h-[56px] touch-target"
+            style={{ touchAction: 'manipulation' }}
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 py-3 border-2 border-black bg-black text-white font-semibold min-h-[48px]"
+            className="flex-1 py-3 border-2 border-black bg-black text-white font-semibold min-h-[56px] touch-target"
+            style={{ touchAction: 'manipulation' }}
           >
             Save
           </button>

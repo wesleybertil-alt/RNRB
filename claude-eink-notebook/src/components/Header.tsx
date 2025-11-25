@@ -19,8 +19,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
-            className="w-12 h-12 flex items-center justify-center text-2xl"
+            className="w-14 h-14 flex items-center justify-center text-2xl touch-target"
             aria-label="Menu"
+            style={{ touchAction: 'manipulation' }}
           >
             ☰
           </button>
@@ -35,8 +36,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {project && (
             <button
               onClick={startNewConversation}
-              className="w-12 h-12 flex items-center justify-center text-xl border-2 border-black"
-              style={{ borderRadius: '4px' }}
+              className="w-14 h-14 flex items-center justify-center text-xl border-2 border-black touch-target"
+              style={{ borderRadius: '4px', touchAction: 'manipulation' }}
               aria-label="New conversation"
             >
               +

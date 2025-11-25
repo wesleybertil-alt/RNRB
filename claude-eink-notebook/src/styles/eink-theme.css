@@ -1,130 +1,457 @@
-/* E-ink optimized theme */
-/* No animations, no hover states, high contrast only */
+/* ============================================
+   E-INK TABLET + STYLUS OPTIMIZED THEME
+   Designed for: Boox, reMarkable, Supernote, etc.
+   Supports: Touch, Stylus/Pen, Keyboard
+   ============================================ */
 
 :root {
+  /* High contrast color palette - pure black/white for e-ink */
   --bg-primary: #FFFFFF;
-  --bg-secondary: #F5F5F5;
+  --bg-secondary: #F0F0F0;
+  --bg-tertiary: #E0E0E0;
   --text-primary: #000000;
-  --text-secondary: #333333;
+  --text-secondary: #222222;
+  --text-muted: #444444;
   --border: #000000;
+  --border-light: #666666;
   --accent: #000000;
-  --user-bubble: #E8E8E8;
+  --user-bubble: #E0E0E0;
   --claude-bubble: #FFFFFF;
+
+  /* E-ink specific sizing */
+  --touch-target-min: 44px;      /* Minimum for finger touch */
+  --stylus-target-min: 32px;     /* Smaller targets OK for stylus */
+  --border-width: 2px;           /* Crisp borders for e-ink */
+  --focus-ring-width: 3px;       /* Visible focus for keyboard/stylus */
 }
 
-/* Base styles */
+/* ============================================
+   GLOBAL RESETS FOR E-INK
+   ============================================ */
+
 * {
+  /* Disable all animations - causes e-ink ghosting */
+  transition: none !important;
+  animation: none !important;
+  animation-duration: 0s !important;
+  transition-duration: 0s !important;
+
+  /* Disable smooth scrolling - causes ghosting */
+  scroll-behavior: auto !important;
+
+  /* Remove shadows - render poorly on e-ink */
+  box-shadow: none !important;
+  text-shadow: none !important;
+
+  /* Disable font smoothing - e-ink handles this */
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
+
+  /* Disable backdrop filters - not supported well */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+*::before,
+*::after {
   transition: none !important;
   animation: none !important;
 }
 
+/* ============================================
+   HTML & BODY - E-INK BASE
+   ============================================ */
+
 html {
   scroll-behavior: auto;
+  /* Prevent rubber-band scrolling on tablets */
+  overscroll-behavior: none;
+  /* Force GPU compositing off for e-ink */
+  transform: translateZ(0);
 }
 
 body {
-  font-family: 'Literata', 'Georgia', serif;
+  font-family: 'Literata', 'Georgia', 'Times New Roman', serif;
   font-size: 18px;
   line-height: 1.6;
+  font-weight: 400;
   color: var(--text-primary);
   background-color: var(--bg-primary);
+
+  /* Disable tap highlight for cleaner e-ink display */
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+
+  /* Optimize for reading */
+  word-spacing: 0.05em;
+  letter-spacing: 0.01em;
+
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
-/* Remove hover states for e-ink */
-button:hover,
-a:hover,
-input:hover,
-textarea:hover,
-select:hover {
-  background-color: inherit;
-  color: inherit;
-  border-color: inherit;
+/* ============================================
+   STYLUS/PEN INPUT OPTIMIZATION
+   ============================================ */
+
+/* Enable precise stylus input */
+* {
+  /* Allow stylus to work precisely */
+  touch-action: manipulation;
 }
 
-/* Minimum touch targets */
+/* Text areas need pan for scrolling with stylus */
+textarea,
+[contenteditable="true"],
+.scrollable {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Scrollable containers */
+.overflow-y-auto,
+.overflow-auto,
+[style*="overflow"] {
+  touch-action: pan-y;
+  /* Smooth stylus scrolling */
+  -webkit-overflow-scrolling: auto; /* Use 'auto' not 'touch' for e-ink */
+  overscroll-behavior-y: contain;
+}
+
+/* Pointer events for stylus detection */
+@media (pointer: fine) {
+  /* Stylus detected - can use smaller targets */
+  button,
+  [role="button"],
+  a {
+    min-height: var(--stylus-target-min);
+    min-width: var(--stylus-target-min);
+  }
+}
+
+@media (pointer: coarse) {
+  /* Touch/finger - need larger targets */
+  button,
+  [role="button"],
+  a {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+}
+
+/* Stylus hover simulation - show on focus instead */
+@media (hover: none) {
+  button:hover,
+  a:hover,
+  input:hover,
+  textarea:hover,
+  select:hover,
+  [role="button"]:hover {
+    background-color: inherit !important;
+    color: inherit !important;
+    border-color: inherit !important;
+  }
+}
+
+/* ============================================
+   FOCUS STATES (Critical for stylus/keyboard)
+   ============================================ */
+
+/* High visibility focus ring for e-ink */
+:focus {
+  outline: var(--focus-ring-width) solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+/* Input focus - inset for text fields */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--text-primary);
+  border-width: var(--focus-ring-width);
+}
+
+/* Button active state - instant feedback for stylus tap */
+button:active,
+[role="button"]:active,
+a:active {
+  background-color: var(--text-primary) !important;
+  color: var(--bg-primary) !important;
+}
+
+/* ============================================
+   BUTTONS & INTERACTIVE ELEMENTS
+   ============================================ */
+
 button,
 [role="button"],
 input[type="submit"],
-input[type="button"],
-a {
-  min-height: 48px;
-  min-width: 48px;
+input[type="button"] {
+  /* Ensure crisp borders */
+  border: var(--border-width) solid var(--border);
+  border-radius: 0; /* No rounded corners - causes ghosting */
+
+  /* Readable text */
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+
+  /* Good contrast */
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+
+  /* Proper sizing for touch/stylus */
+  padding: 0.5rem 1rem;
+
+  /* Cursor for devices that show it */
+  cursor: pointer;
+
+  /* Prevent text selection on double-tap */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-/* Input styles */
+/* ============================================
+   FORM INPUTS - STYLUS WRITING OPTIMIZED
+   ============================================ */
+
 input,
 textarea,
 select {
   font-family: inherit;
-  font-size: inherit;
+  font-size: 18px; /* Ensure readable size */
+  line-height: 1.5;
+
+  /* Crisp appearance */
+  border: var(--border-width) solid var(--border);
   border-radius: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+
+  /* Remove system styling */
   -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
+
+  /* Padding for comfortable stylus writing */
+  padding: 0.75rem;
 }
 
-input:focus,
-textarea:focus,
-select:focus {
-  outline: 2px solid var(--border);
-  outline-offset: -2px;
+/* Textarea optimized for stylus input */
+textarea {
+  /* Resize only vertical for e-ink */
+  resize: vertical;
+
+  /* Good line height for handwriting recognition */
+  line-height: 1.8;
+
+  /* Sufficient space for stylus writing */
+  min-height: 100px;
 }
 
-/* Scrollbar styling for e-ink */
-::-webkit-scrollbar {
-  width: 8px;
+/* Placeholder styling */
+::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
+/* ============================================
+   TEXT SELECTION - E-INK OPTIMIZED
+   ============================================ */
 
-::-webkit-scrollbar-thumb {
-  background: var(--text-secondary);
-  border: 1px solid var(--bg-secondary);
-}
-
-/* Remove all box shadows */
-* {
-  box-shadow: none !important;
-}
-
-/* Disable text selection highlight color for e-ink clarity */
 ::selection {
   background-color: var(--text-primary);
   color: var(--bg-primary);
 }
 
-/* Links */
+::-moz-selection {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+/* Disable selection on UI elements */
+button,
+[role="button"],
+nav,
+header {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Enable selection on content */
+p,
+article,
+.selectable,
+[contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* ============================================
+   SCROLLBARS - VISIBLE ON E-INK
+   ============================================ */
+
+/* Webkit scrollbars */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border: 2px solid var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--text-primary);
+}
+
+/* Firefox scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-muted) var(--bg-secondary);
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+
 a {
   color: var(--text-primary);
   text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
-/* Ensure high contrast for accessibility */
+a:active {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+/* ============================================
+   E-INK SPECIFIC UTILITY CLASSES
+   ============================================ */
+
+/* Force a visual refresh hint */
+.eink-refresh {
+  will-change: auto;
+  contain: layout style;
+}
+
+/* High contrast mode for important elements */
+.eink-high-contrast {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-primary) !important;
+  border-color: var(--text-primary) !important;
+}
+
+/* Inverted for selected/active states */
+.eink-inverted {
+  color: var(--bg-primary) !important;
+  background-color: var(--text-primary) !important;
+}
+
+/* Content area optimized for reading */
+.eink-content {
+  max-width: 65ch; /* Optimal reading width */
+  line-height: 1.7;
+  word-spacing: 0.05em;
+}
+
+/* Disable pointer events during refresh */
+.eink-refreshing {
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+/* ============================================
+   MEDIA QUERIES
+   ============================================ */
+
+/* High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
     --bg-secondary: #FFFFFF;
+    --bg-tertiary: #FFFFFF;
     --text-secondary: #000000;
+    --text-muted: #000000;
+    --border-light: #000000;
   }
 }
 
-/* Print styles (useful for e-ink) */
+/* Reduced motion - already handled but explicit */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* E-ink display detection (experimental) */
+@media (update: slow) {
+  /* Device has slow refresh rate - likely e-ink */
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Increase contrast further */
+  :root {
+    --text-secondary: #000000;
+    --border-light: #000000;
+  }
+}
+
+/* Print styles - useful for e-ink */
 @media print {
   * {
     color: #000 !important;
     background: #fff !important;
+    border-color: #000 !important;
   }
 }
 
-/* Safe area padding for notched devices */
+/* ============================================
+   SAFE AREA INSETS (for tablets with notches)
+   ============================================ */
+
 @supports (padding-top: env(safe-area-inset-top)) {
   body {
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* ============================================
+   PALM REJECTION HINTS
+   ============================================ */
+
+/* Areas where palm rejection should be strict */
+.palm-rejection-strict {
+  touch-action: none;
+}
+
+/* Enable only stylus, reject touch */
+@media (any-pointer: fine) {
+  .stylus-only {
+    pointer-events: auto;
   }
 }

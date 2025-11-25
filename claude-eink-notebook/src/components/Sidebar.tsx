@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useProjects } from '../hooks/useProjects';
 import { useConversationStore } from '../stores/conversationStore';
 import { DocumentList } from './DocumentList';
+import { forceEinkRefresh } from '../lib/eink-utils';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -25,6 +26,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpenSetting
   const [newProjectName, setNewProjectName] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('projects');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // E-ink refresh on sidebar open
+  useEffect(() => {
+    if (isOpen) {
+      forceEinkRefresh(sidebarRef.current);
+    }
+  }, [isOpen]);
+
+  // Debounced scroll handler for e-ink
+  const handleScrollEnd = useCallback(() => {
+    forceEinkRefresh(scrollRef.current);
+  }, []);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    let scrollTimeout: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScrollEnd, 150);
+    };
+
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      container.removeEventListener('scroll', onScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [handleScrollEnd]);
 
   const currentProjectConversations = conversations.filter(
     (c) => c.projectId === currentProjectId
@@ -56,16 +88,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpenSetting
       <div
         className="fixed inset-0 bg-black bg-opacity-20 z-40"
         onClick={onClose}
+        style={{ touchAction: 'manipulation' }}
       />
 
       {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-72 bg-white border-r-2 border-black z-50 flex flex-col">
+      <div
+        ref={sidebarRef}
+        className="fixed left-0 top-0 h-full w-72 bg-white border-r-2 border-black z-50 flex flex-col"
+      >
         {/* Header */}
         <div className="p-4 border-b-2 border-black flex justify-between items-center">
           <h2 className="font-serif font-semibold text-lg">Menu</h2>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center text-xl"
+            className="w-12 h-12 flex items-center justify-center text-xl touch-target"
+            style={{ touchAction: 'manipulation' }}
+            aria-label="Close menu"
           >
             ×
           </button>
@@ -75,24 +113,34 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, onOpenSetting
         <div className="flex border-b-2 border-black">
           <button
             onClick={() => setActiveTab('projects')}
-            className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wide min-h-[48px] ${
+            className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wide min-h-[48px] touch-target ${
               activeTab === 'projects' ? 'bg-black text-white' : ''
             }`}
+            style={{ touchAction: 'manipulation' }}
           >
             Projects
           </button>
           <button
             onClick={() => setActiveTab('documents')}
-            className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wide min-h-[48px] ${
+            className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wide min-h-[48px] touch-target ${
               activeTab === 'documents' ? 'bg-black text-white' : ''
             }`}
+            style={{ touchAction: 'manipulation' }}
           >
             Documents
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto scrollable"
+          style={{
+            touchAction: 'pan-y',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+          }}
+        >
           {activeTab === 'projects' ? (
             <div className="p-4">
               {projects.map((project) => (

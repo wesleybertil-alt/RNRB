@@ -1,13 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MessageBubble } from './MessageBubble';
 import { InputArea } from './InputArea';
 import { SaveAsDocument } from './SaveAsDocument';
 import { useConversationStore } from '../stores/conversationStore';
 import { useEinkRefresh } from '../hooks/useEinkRefresh';
+import { forceEinkRefresh } from '../lib/eink-utils';
 
 export const ChatInterface: React.FC = () => {
   const { getCurrentConversation, isLoading, error } = useConversationStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { refresh } = useEinkRefresh();
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
@@ -20,10 +22,41 @@ export const ChatInterface: React.FC = () => {
     refresh();
   }, [messages.length, refresh]);
 
+  // Handle scroll end for e-ink refresh
+  const handleScrollEnd = useCallback(() => {
+    forceEinkRefresh(scrollContainerRef.current);
+  }, []);
+
+  // Debounced scroll handler for e-ink displays
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    let scrollTimeout: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScrollEnd, 150);
+    };
+
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      container.removeEventListener('scroll', onScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, [handleScrollEnd]);
+
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* Messages area - optimized for e-ink scrolling */}
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-4 scrollable"
+        style={{
+          touchAction: 'pan-y',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+        }}
+      >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-500">
             <p className="text-center font-serif">
@@ -64,7 +97,8 @@ export const ChatInterface: React.FC = () => {
         <div className="px-4 py-2 border-t border-gray-300 flex justify-end">
           <button
             onClick={() => setShowSaveDialog(true)}
-            className="text-sm px-3 py-2 border-2 border-black min-h-[40px]"
+            className="text-sm px-4 py-2 border-2 border-black min-h-[48px] touch-target"
+            style={{ touchAction: 'manipulation' }}
           >
             Save as Document
           </button>
