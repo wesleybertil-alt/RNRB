@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDocumentStore } from '../stores/documentStore';
 import { useProjectStore } from '../stores/projectStore';
-import type { Mode } from '../types';
+import { DocumentViewer } from './DocumentViewer';
+import type { Mode, Document } from '../types';
 
 const STAGE_ORDER: Mode[] = ['draft', 'research', 'synthesis', 'writing'];
 
@@ -45,8 +46,9 @@ const StageIndicator: React.FC<StageIndicatorProps> = ({ currentStage, stageHist
 };
 
 export const DocumentList: React.FC = () => {
-  const { documents, deleteDocument, promoteDocument } = useDocumentStore();
+  const { documents } = useDocumentStore();
   const { currentProjectId } = useProjectStore();
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
 
   const projectDocuments = documents.filter(d => d.projectId === currentProjectId);
 
@@ -54,25 +56,20 @@ export const DocumentList: React.FC = () => {
     return (
       <div className="p-4 text-center text-gray-500">
         <p className="font-serif">No documents yet</p>
+        <p className="text-sm mt-2">Save conversations as documents to track your research</p>
       </div>
     );
   }
 
-  const getNextStage = (currentStage: Mode): Mode | null => {
-    const currentIndex = STAGE_ORDER.indexOf(currentStage);
-    if (currentIndex < STAGE_ORDER.length - 1) {
-      return STAGE_ORDER[currentIndex + 1];
-    }
-    return null;
-  };
-
   return (
-    <div className="divide-y-2 divide-black">
-      {projectDocuments.map((doc) => {
-        const nextStage = getNextStage(doc.currentStage);
-
-        return (
-          <div key={doc.id} className="p-4">
+    <>
+      <div className="divide-y-2 divide-black">
+        {projectDocuments.map((doc) => (
+          <button
+            key={doc.id}
+            onClick={() => setSelectedDocument(doc)}
+            className="w-full text-left p-4 min-h-[80px]"
+          >
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold truncate flex-1">{doc.title}</h3>
               <StageIndicator
@@ -80,28 +77,20 @@ export const DocumentList: React.FC = () => {
                 stageHistory={doc.stageHistory}
               />
             </div>
-            <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+            <p className="text-sm text-gray-600 line-clamp-2">
               {doc.content.substring(0, 150)}...
             </p>
-            <div className="flex gap-2">
-              {nextStage && (
-                <button
-                  onClick={() => promoteDocument(doc.id, nextStage)}
-                  className="text-xs px-2 py-1 border border-black min-h-[32px]"
-                >
-                  → {nextStage}
-                </button>
-              )}
-              <button
-                onClick={() => deleteDocument(doc.id)}
-                className="text-xs px-2 py-1 border border-black text-gray-600 min-h-[32px]"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        );
-      })}
-    </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Document Viewer Modal */}
+      {selectedDocument && (
+        <DocumentViewer
+          document={selectedDocument}
+          onClose={() => setSelectedDocument(null)}
+        />
+      )}
+    </>
   );
 };

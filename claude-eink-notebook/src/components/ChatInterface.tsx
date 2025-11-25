@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MessageBubble } from './MessageBubble';
 import { InputArea } from './InputArea';
+import { SaveAsDocument } from './SaveAsDocument';
 import { useConversationStore } from '../stores/conversationStore';
 import { useEinkRefresh } from '../hooks/useEinkRefresh';
 
@@ -8,6 +9,7 @@ export const ChatInterface: React.FC = () => {
   const { getCurrentConversation, isLoading, error } = useConversationStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { refresh } = useEinkRefresh();
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   const conversation = getCurrentConversation();
   const messages = conversation?.messages || [];
@@ -57,8 +59,26 @@ export const ChatInterface: React.FC = () => {
         </div>
       )}
 
+      {/* Action bar - only show when there are messages */}
+      {messages.length > 0 && (
+        <div className="px-4 py-2 border-t border-gray-300 flex justify-end">
+          <button
+            onClick={() => setShowSaveDialog(true)}
+            className="text-sm px-3 py-2 border-2 border-black min-h-[40px]"
+          >
+            Save as Document
+          </button>
+        </div>
+      )}
+
       {/* Input area */}
       <InputArea />
+
+      {/* Save as Document dialog */}
+      <SaveAsDocument
+        isOpen={showSaveDialog}
+        onClose={() => setShowSaveDialog(false)}
+      />
     </div>
   );
 };
