@@ -1,73 +1,145 @@
-# React + TypeScript + Vite
+# Claude E-Ink Notebook
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimalist Claude interface optimized for e-ink devices (Boox Air 4C), embodying "The Librarian Model" - AI as cognitive exoskeleton, not replacement creator.
 
-Currently, two official plugins are available:
+## Philosophy
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **AI handles**: memory, retrieval, research labor, holding the mental stack
+- **Human handles**: abstraction, judgment, taste, vision, final authority
+- **Result**: Human thinks better, not human replaced by machine thinking worse
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Four-Mode System
+- **Draft**: Exploration and generation - say "yes, and" to ideas
+- **Research**: Verification and evidence - find what's true
+- **Synthesis**: Connection and meaning - see the bigger picture
+- **Writing**: Craft and clarity - make the work sing
 
-## Expanding the ESLint configuration
+### Core Features
+- Project-based organization with knowledge bases
+- Conversation history with IndexedDB persistence
+- Document stage tracking (Draft → Research → Synthesis → Writing)
+- E-ink optimized UI (no animations, high contrast, touch-friendly)
+- PWA with offline support
+- Capacitor for native Android APK
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Frontend**: React 18 + TypeScript
+- **Styling**: Tailwind CSS (e-ink custom theme)
+- **State**: Zustand (lightweight, persistent)
+- **Storage**: IndexedDB (Dexie.js wrapper)
+- **API**: Claude API (claude-sonnet-4-20250514)
+- **PWA**: Vite PWA plugin
+- **Native**: Capacitor (iOS/Android)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Claude API key from [console.anthropic.com](https://console.anthropic.com)
+
+### Installation
+
+```bash
+# Clone and install
+cd claude-eink-notebook
+npm install
+
+# Start development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Configuration
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Open the app in your browser
+2. Click the menu (☰) → Settings
+3. Enter your Claude API key
+4. Start chatting!
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Deployment
+
+### PWA (Vercel)
+
+```bash
+# Build for production
+npm run build
+
+# Deploy to Vercel
+npx vercel --prod
+
+# Or use the Vercel dashboard to connect your repo
 ```
+
+### Android APK (Capacitor)
+
+```bash
+# Build web assets
+npm run build
+
+# Add Android platform (first time only)
+npx cap add android
+
+# Sync and build
+npm run build:android
+
+# Open in Android Studio
+npx cap open android
+
+# Build APK from Android Studio:
+# Build → Build Bundle(s) / APK(s) → Build APK(s)
+```
+
+APK location: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+## E-ink UI Guidelines
+
+This app follows strict e-ink UI rules:
+
+- **No animations** - causes ghosting
+- **No hover states** - e-ink has no cursor
+- **Black/white/gray only** - no colors
+- **2px solid borders** - crisp visibility
+- **48px minimum touch targets** - finger-friendly
+- **18px Literata font** - optimized for readability
+- **No rounded corners > 4px** - ghosting issues
+- **No shadows** - render poorly
+
+## Project Structure
+
+```
+claude-eink-notebook/
+├── src/
+│   ├── components/     # UI components
+│   ├── hooks/          # Custom React hooks
+│   ├── stores/         # Zustand state stores
+│   ├── lib/            # Utilities and API
+│   ├── styles/         # E-ink theme CSS
+│   └── types/          # TypeScript types
+├── public/
+│   ├── icons/          # App icons
+│   └── manifest.json   # PWA manifest
+├── capacitor.config.ts # Native app config
+├── vite.config.ts      # Build config
+└── vercel.json         # Deployment config
+```
+
+## Scripts
+
+```bash
+npm run dev           # Start dev server
+npm run build         # Production build
+npm run preview       # Preview production build
+npm run build:android # Build for Android
+npm run cap:sync      # Sync Capacitor
+```
+
+## License
+
+MIT
+
+---
+
+Built with the belief that AI should enhance human thinking, not replace it.
