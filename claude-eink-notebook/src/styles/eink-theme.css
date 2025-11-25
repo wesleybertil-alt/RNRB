@@ -1,0 +1,130 @@
+/* E-ink optimized theme */
+/* No animations, no hover states, high contrast only */
+
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --border: #000000;
+  --accent: #000000;
+  --user-bubble: #E8E8E8;
+  --claude-bubble: #FFFFFF;
+}
+
+/* Base styles */
+* {
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: auto;
+  transition: none !important;
+  animation: none !important;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  font-family: 'Literata', 'Georgia', serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove hover states for e-ink */
+button:hover,
+a:hover,
+input:hover,
+textarea:hover,
+select:hover {
+  background-color: inherit;
+  color: inherit;
+  border-color: inherit;
+}
+
+/* Minimum touch targets */
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+a {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Input styles */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  border-radius: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--border);
+  outline-offset: -2px;
+}
+
+/* Scrollbar styling for e-ink */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border: 1px solid var(--bg-secondary);
+}
+
+/* Remove all box shadows */
+* {
+  box-shadow: none !important;
+}
+
+/* Disable text selection highlight color for e-ink clarity */
+::selection {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+/* Links */
+a {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+/* Ensure high contrast for accessibility */
+@media (prefers-contrast: high) {
+  :root {
+    --bg-secondary: #FFFFFF;
+    --text-secondary: #000000;
+  }
+}
+
+/* Print styles (useful for e-ink) */
+@media print {
+  * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}
+
+/* Safe area padding for notched devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
